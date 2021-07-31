@@ -12,8 +12,10 @@ from airflow.operators.python import PythonOperator
 
 dag = DAG(
     dag_id="01_unscheduled",
-    start_date = dt.datetime(2019,1,1),  # this defines the start date for the dag
-    schedule_interval=None,               # this specify that this is an unscheduled dag
+    schedule_interval= "@daily", # this specify that this is an unscheduled dag
+    start_date = dt.datetime(year=2021, month=1, day=3),  # this defines the start date for the dag
+    end_date=dt.datetime(year=2021, month=1, day=5),
+                   
 )
 
 
@@ -22,7 +24,10 @@ fetch_events = BashOperator(
     task_id="fetch_events",
     bash_command = (
         "mkdir -p /home/ubuntu/airflow/data && "
-        "curl -o /home/ubuntu/airflow/data/events.json http://0.0.0.0:5000/events"            ## here we can also use any REST-API, to make things simple, and have light data, I have created a flask based local API
+        "curl -o /home/ubuntu/airflow/data/events.json"
+        "http://0.0.0.0:5000/events?"
+        "start_date={{execution_date.strftime('%Y-%m-%d')}}"
+        "&end_date={{next_execution_date.strftime('%Y-%m-$d')}}"           ## formated execution_date inserted with jinja templating, next_execution_date holds the execution date of the next interval ## here we can also use any REST-API, to make things simple, and have light data, I have created a flask based local API
     ),
     dag= dag,
 )
